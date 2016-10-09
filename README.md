@@ -31,3 +31,5 @@ dirname                   ----从给定的包含绝对路径的文件名中去�
 basebane                  ----从给定的包含绝对路径的文件名中去除左边目录部分或者同时去除某个后缀的内容（目录的部分），然后返回剩下的部分
 
 -h                        ----利于人观看的。
+
+# http://www.runoob.com/linux/linux-shell-passing-arguments.html 教程
