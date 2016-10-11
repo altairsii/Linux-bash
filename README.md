@@ -33,3 +33,14 @@ basebane                  ----从给定的包含绝对路径的文件名中去�
 -h                        ----利于人观看的。
 
 # http://www.runoob.com/linux/linux-shell-passing-arguments.html 教程
+
+# 登陆执行脚本
+  .bashrc 文件会在开启终端的时候执行
+  /etc/rc.local 文件会在系统启动时执行，该文件是以root用户执行
+  ~/.config/autostart/*.desktop  该文件会在登录后桌面加载结束后执行
+    [Desktop Entry]                 
+    Name=boot-ths                    ----桌面应用名称
+    Exec=/home/wyb/ths/boot.sh       ----执行脚本路径
+    Type=Application                 ----应用类型
+    Terminal=false
+    X-GNOME-Autostart-enabled=true   ----是否桌面加载结束后执行
