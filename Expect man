@@ -1,0 +1,230 @@
+expect [ -dDinN ] [ -c cmds ] [ [ -[f|b] ] cmdfile ] [ args ] 
+
+Expect使用Tcl（工具命令语言）。 
+Tcl提供控制流（例如，if，for，break），表达式求值和其他一些特性，如递归，过程定义等。
+这里使用但未定义的命令（例如set，if，exec） 
+
+#!/usr/local/bin/expect -f
+  标记可执行脚本/usr/local/bin/expect为expect安装路径
+
+-c 制定在脚本执行前执行的内容
+-d 启用诊断输出
+-D 启用交互式debug，后接整数
+-f 命令文件，一次全部读取执行 ？
+-b 每次读取1行命令执行
+-i 通过交互式提示输入命令
+-- 可用于界定选项的结束，防止被expect解释
+    #!/usr/local/bin/expect -- 这将是一个变量
+-v 打印版本号
+
+close [-slave] [-onexec 0|1] [-i spawn_id] 
+  关闭与当前进程的连接。 大多数交互式程序将在其stdin上检测EOF并退出; 因此关闭通常也足以杀死进程。 -i标志声明对应于命名的spawn_id的进程关闭。
+debug [[-now] 0|1] 
+  控制一个Tcl调试器，允许您逐步执行语句，设置断点等。
+disconnect
+  断开与终端的分支进程。 它继续在后台运行。
+exit [-opts] [status] 
+  导致Expect退出或准备这样做。
+exp_continue [-continue_timer] 
+  命令exp_continue允许期望自己继续执行而不是正常返回。 默认情况下，exp_continue重置超时定时器。
+exp_internal[-f file] value 
+  如果值不为零，则进一步将命令发送到Expect内部的诊断信息到stderr。 如果值为0，则禁用此输出。
+  诊断信息包括接收到的每个字符，以及每次尝试使当前输出与模式匹配。
+exp_open [args] [-i spawn_id] 
+  返回与原始spawn ID对应的Tcl文件标识符。 然后可以使用文件标识符，就像它是由Tcl的打开命令打开的。 （不应该使用spawn id，不应该执行wait。
+exp_pid [-i spawn_id] 
+  返回与当前生成的进程对应的进程标识。 如果使用-i标志，则返回的pid对应于给定spawn标识的pid。
+expect [[-opts] pat1 body1] ... [-opts] patn [bodyn] 
+  等待直到其中一个模式匹配所产生的进程的输出，指定的时间段已经过去或者看到文件结束。 如果最终体是空的，则可以省略。
+  expect_before命令在任何其他模式匹配之前隐式使用。 来自最近的expect_after命令的模式在任何其他模式之后隐式使用。 
+  如果参数为整个expect语句需要多行，所有参数可以“braced”到一个，以避免用反斜杠终止每一行。 在这种情况下，通常的Tcl取代将发生，尽管大括号。
+  如果模式是关键字eof，在文件结束时执行相应的主体。 如果模式是关键字timeout，则超时时执行相应的主体。 
+  如果未使用timeout关键字，则在timeout后执行隐式空操作。 
+  默认超时时间为10秒，但可以通过命令“set timeout 30”设置，例如设置为30。 
+  无限超时可以由值-1指定。 如果模式是关键字default，则在超时或文件结束时执行相应的正文。
+  
+  模式以三种方式指定。 默认情况下，模式使用Tcl的字符串match命令指定。 （这种模式也类似于C-shell正则表达式，通常称为“glob”模式）。 
+  -gl标志可以用于保护，不去匹配expect标志的模式。
+  任何以“ - ”开头的模式都应该受到保护。(以“ - ”开头的所有字符串将保留以供将来使用）。
+  
+  引号在第四个模式中是必需的，因为它包含一个空格，否则会将模式与操作分隔开。 具有相同动作的模式（例如第3和第4）需要再次列出动作。 
+  这可以通过使用regexp样式模式来避免（见下文）。 
+  正则表达式模式遵循Tcl定义的语法 regexp命令。 regexp模式与标志-re一起引入。 
+  两种类型的模式都是“unanchored”。 这意味着模式不必匹配整个字符串，但可以在字符串的任何位置开始和结束匹配（只要一切匹配）。 
+  使用^匹配字符串的开头，使用$匹配结尾。 注意，如果你不等待字符串的结束，你的响应可以很容易地结束在字符串的中间，因为它们从生成的进程回显。
+  虽然仍然产生正确的结果，输出可能看起来不自然。 因此，如果您可以准确描述字符串结尾处的字符，则鼓励使用$。
+  
+  -ex标志使模式匹配为“精确”字符串。 不解释*，^，等（尽管通常的Tcl约定仍然必须遵守）。 精确模式总是unanchored。
+  -nocase标志使输出的大写字符进行比较，就像它们是小写字符一样。 模式不受影响。
+  
+  读取输出时，超过2000字节可以强制更早的字节被“forgotten”。 这可以用match_max函数改变。 （
+  请注意，过大的值可能会降低模式匹配器的速度。）如果patlist是full_buffer，则如果已接收到match_max字节且没有其他模式匹配，则执行相应的正文。 
+  无论是否使用full_buffer关键字，forgotten字符都写入expect_out（buffer）。
+  
+  如果patlist是关键字null，并且允许null（通过remove_nulls命令），如果匹配单个ASCII 0，则执行相应的主体。 不能通过glob或regexp模式匹配0字节。
+  
+  在匹配模式（或eof或full_buffer）时，任何匹配和先前不匹配的输出保存在变量expect_out（buffer）中。 
+  多达9个regexp子字符串匹配通过expect_out（9，string）保存在变量expect_out（1，string）中。 
+  如果在模式之前使用-indices标志，则10个字符串的开始和结束索引（以适合于lrange的形式）存储在变量expect_out（X，start）和expect_out（X，end）中，
+  其中X是 数字，对应于缓冲区中的子字符串位置。 0是指匹配整个模式并且为glob模式以及regexp模式生成的字符串。 例如，如果进程生成了“abcdefgh \ n”的输出，则结果为：
+  
+  
+  -timeout标志使当前expect命令使用以下值作为超时，而不使用超时变量的值。
+  
+  默认情况下，patterns与当前进程的输出进行匹配，但-i标志声明命名spawn_id列表的输出与任何以下patterns（直到下一个-i）匹配。
+  spawn_id列表应该是空格分隔的spawn_ids列表，或者是一个引用这样的spawn_ids列表的变量。
+  eg: 
+  expect {
+    -i $proc2 busy {puts busy\n ; exp_continue}
+    -re "failed|invalid password" abort
+    timeout abort
+    connected
+  }
+  
+  
+诸如break和continue的动作使控制结构(for，proc）以通常的方式表现。 命令exp_continue允许expect自己继续执行而不是正常返回。
+eg:
+expect {
+    Password: {
+        stty -echo
+        send_user "password (for $user) on $host: "
+        expect_user -re "(.*)\n"
+        send_user "\n"
+        send "$expect_out(1,string)\r"
+        stty echo
+        exp_continue
+    } incorrect {
+        send_user "invalid password or account\n"
+        exit
+    } timeout {
+        send_user "connection to $host timed out\n"
+        exit
+    } eof {
+        send_user \
+            "connection to host failed: $expect_out(buffer)"
+        exit
+    } -re $prompt
+  }
+  
+expect_after [expect_args]   
+  除了expect和expect_after之外的模式可以匹配，使用expect模式。
+expect_background [expect_args] 
+  采用与expect相同的参数，但是它立即返回。 每当新输入到达时，都会测试Patterns。 模式超时和默认值对expect_background没有意义，并被默认丢弃。 
+  否则，expect_background命令使用expect_before和expect_after模式，与预期一样。
+expect_before [expect_args]   
+  采用与expect相同的参数，但是它立即返回。 来自具有相同spawn id的最近expect_before的模式动作对隐含地添加到任何以下expect命令。 
+  如果模式匹配，则将其视为已在expect命令本身中指定，并且关联的主体在expect命令的上下文中执行。 
+  如果来自expect_before和expect的模式可以匹配，则使用expect_before模式。
+  如果未指定模式，则不检查任何模式的spawn ID。
+  除非被-i标志覆盖，否则expect_before模式匹配在执行expect_before命令时定义的spawn id（而不是当它的模式匹配时）。
+  -info标志使expect_before返回它将匹配的模式的当前规范。 默认情况下，它报告当前spawn ID。 可以给出关于该spawn id的信息的可选的spawn id规范。 例如
+  eg:
+    expect_before -info -i $proc
+expect_tty [expect_args]   
+  读取字符/ dev / tty（即来自用户的击键）。 行必须以返回结束，以便expect看到它们。 这可以通过stty改变（参见下面的stty命令）。
+expect_user[expect_args] 
+  它从stdin读取字符
+fork
+  创建一个新进程。 新流程是当前Expect流程的确切副本。 成功时，fork返回0到新（子）进程，并将子进程的进程ID返回给父进程。 
+  在失败时（总是由于缺乏资源，例如交换空间，内存），fork向父进程返回-1，并且不创建子进程。
+interact [string1 body1] ... [stringn [bodyn]] 
+  向用户提供当前进程的控制，以便将击键发送到当前进程，并且返回当前进程的stdout和stderr。
+  eg:
+    set CTRLZ \032
+    interact {
+      -reset $CTRLZ {exec kill -STOP [pid]}
+      \001   {send_user "you typed a control-A\n";
+              send "\001"
+            }
+     $      {send_user "The date is [clock format [clock seconds]]."}
+      \003   exit
+      foo    {send_user "bar"}
+      ~~
+    }
+    当按下^ Z时，Expect被暂停。 （-reset标志恢复终端模式。）当按下^ A时，用户看到“您键入了控制A”，并且过程被发送^ A。 当按下$时，用户看到日期。
+    按^ C时，Expect退出。 如果输入“foo”，用户看到“bar”。 当按下~~时，Expect解释器交互运行。
+log_file[args] [[-a] file] 
+  记录日志到给定文件
+  可以通过使用-open或-leaveopen标志来提供Tcl文件标识符。 这类似于spawn命令。 
+  -a标志强制要记录的输出被log_user命令抑制。
+log_user -info|0|1 
+  通过命令“log_user 0”禁用到stdout的日志记录，并通过“log_user 1”重新启用。
+match_max [-d] [-i spawn_id] [size] 
+  定义由expect在内部使用的缓冲区大小（以字节为单位）。 如果没有size参数，则返回当前大小。
+  -d标志，则设置默认大小。 （初始默认值为2000.）使用-i标志，为命名的spawn ID设置大小，否则为当前进程设置大小。
+overlay [-# spawn_id] [-# spawn_id] [...] program [args] 
+  执行程序args代替当前Expect程序
+parity [-d] [-i spawn_id] [value] 
+  定义是否应保留或从生成的进程的输出中删除奇偶校验。 如果值为零，则奇偶校验被去除，否则不被去除。 如果没有值参数，则返回当前值。
+remove_nulls [-d] [-i spawn_id] [value] 
+  定义在模式匹配或存储在变量expect_out或interact_out之前，是否保留或从生成的进程的输出中删除null。 如果值为1，将删除null。 如果值为0，则不会删除null。
+  如果没有值参数，则返回当前值。
+send [-flags] string 
+  将字符串发送到当前进程。返回字符表示为“\r”。
+  --标志强制下一个参数被解释为字符串而不是标志。
+  -i标志声明将字符串发送到命名的spawn_id。
+  -null标志发送空字符（0字节）。 默认情况下，发送一个null。 整数可以在-null后面，以指示要发送多少个空值。
+  -break标志生成中断条件。 这只有当spawn id引用通过“spawn -open”打开的tty设备时才有意义。
+  -s标志强制输出被“slowly”发送，从而避免了计算机输出缓冲器的常见情况，该输入缓冲器是为永远不会输出相同缓冲器的人设计的。
+  -h标志强制输出被发送（有点）像人类实际打字。
+send_error[-flags] string 
+send_log [--] string 
+send_log [--] string 
+send_user[-flags] string 
+sleep seconds 
+  睡眠给定的秒数。
+spawn[args] program [args] 
+  创建一个新的进程运行程序args。 它的stdin，stdout和stderr连接到Expect，以便它们可以被其他Expect命令读写。 
+  连接由关闭或如果进程本身关闭任何文件标识符而中断。
+spawn
+  返回UNIX进程标识。 如果未生成进程，则返回0。 变量spawn_out（从属，名称）设置为pty从属设备的名称。
+  spawn回显命令名称和参数。 -noecho标志停止生成这样做。
+  -open标志使下一个参数被解释为一个Tcl文件标识符
+strace level 
+  执行之前打印以下语句。 （Tcl的跟踪命令跟踪变量。）level表示在跟踪调用堆栈中多远。
+  -info标志使strace返回给出的最近的非信息参数的描述。
+timestamp [args] 
+  返回时间戳。
+  -format 
+  eg:
+    %a      abbreviated weekday name
+    %A      full weekday name
+    %b      abbreviated month name
+    %B      full month name
+    %c      date-time as in: Wed Oct  6 11:45:56 1993
+    %d      day of the month (01-31)
+    %H      hour (00-23)
+    %I      hour (01-12)
+    %j      day (001-366)
+    %m      month (01-12)
+    %M      minute (00-59)
+    %p      am or pm
+    %S      second (00-61)
+    %u      day (1-7, Monday is first day of week)
+    %U      week (00-53, first Sunday is first day of week one)
+    %V      week (01-53, ISO 8601 style)
+    %w      day (0-6)
+    %W      week (00-53, first Monday is first day of week one)
+    %x      date-time as in: Wed Oct  6 1993
+    %X      time as in: 23:59:59
+    %y      year (00-99)
+    %Y      year as in: 1993
+    %Z      timezone (or nothing if not determinable)
+    %%      a bare percent sign
+  -seconds标志引入了自从纪元以来用作要从中格式化的源的秒数
+  -gmt标志强制时间戳输出使用GMT时区。 没有标志，使用本地时区。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
