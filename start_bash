@@ -1,0 +1,76 @@
+#if条件判断，if后的条件需要用‘；’或者换行明确 ，并列关键字'elif'，结束关键字'fi'
+eg：1
+if ...; then
+...
+elif ...;then
+...
+else
+...
+fi
+eg：2
+if...
+then
+...
+elif ...
+then
+...
+else
+...
+fi
+
+bash中if条件测试 [ ... ]<tt> 等价与 <tt>test ...
+-f "filename"  判断是否是一个文件
+-x "/bin/ls" 判断/bin/ls是否存在并有可执行权限
+-n "$var" 判断变量$var是否有值
+"$a" == "$b" 判断$a 和$b是否相等
+可以使用man test 查询用法。
+[ ... ] && {...} 左边表达式为真则执行右边语句
+[ ... ] || {...} 左边表达式为假则执行右边语句
+
+#case表达式可以匹配字符串
+case string in 
+  string） --匹配字符串
+    执行语句
+  string)  --匹配字符串
+    执行语句
+  *)
+    执行语句
+esac  --结束
+eg：
+  ftype="$(file "$1")"
+  case "$ftype" in
+  "$1: Zip archive"*)
+    unzip "$1";;
+  "$1: gzip compressed"*)
+    gunzip "$1";;
+  *)
+    echo "error";;
+   esac
+#select循环可以构建交互式场合
+select var in ... ... ...; do
+ 执行语句
+done
+该语句会在界面输出#？等待输入参数
+
+#while/for循环
+while ...; do
+...
+done
+
+for var in ...; do
+...
+done
+
+#shell中的特殊符号
+1.引号（''/""）可以阻止通配符‘*’的扩展，及*需要放在引号外,单引号可以防止任何变量扩展
+2.反斜杠（\）会阻止扩展
+#Here Document 可以传递多行文字，
+<< HELP 
+...
+...
+HELP
+
+#shift 左移命令  shift n 相当于  $i=$(i-n)
+
+
+
